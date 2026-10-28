@@ -597,7 +597,8 @@ default, narrow cross-ring guards, and the quit-confirmation rule both clients d
   `false` returns the same authoritative membership/order without the synchronous per-workspace diff-stat
   fan-out used nowhere by navigation restoration / `fs.*` (**`fs.readFile`** answers
   `{ content, meta: ResourceMeta }`) / `git.*` / **`spec.graph`**
-  (the Specs-viewer whole-graph read, per workspace) / **`todo.*`** — **`list`**/**`add`**/**`update`**/
+  (the Specs-viewer whole-graph read, per workspace) + **`spec.getTranslation`** (`{ workspaceId, path }`
+  → `{ translation, cached }`, JIT spec translation via seeded and user cache) / **`todo.*`** — **`list`**/**`add`**/**`update`**/
   **`remove`**, the chat's per-session TODO plan (keyed by `workspaceId` + `sessionId`; `add` tags the
   item `origin:"user"`), plus the review ops **`review`** (approve: record `reviewed` + the sha
   watermark), **`requestFix`** (record `changes_requested` + feedback, then the host fires the fix

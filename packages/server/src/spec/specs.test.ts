@@ -2,7 +2,13 @@ import { afterEach, beforeEach, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { evictSpecIndex, projectHasSpecs, specGraph } from "./specs";
+import {
+	evictSpecIndex,
+	getSpecTranslation,
+	projectHasSpecs,
+	saveUserSpecTranslation,
+	specGraph,
+} from "./specs";
 
 let dataDir: string;
 let worktree: string;
@@ -107,4 +113,26 @@ test("evictSpecIndex drops the cached index; a later read rebuilds cleanly", () 
 
 	evictSpecIndex("ws1");
 	expect(specGraph("ws1").nodes.map((n) => n.id)).toEqual(["root-spec"]);
+});
+
+test("getSpecTranslation returns translation from seed cache or user cache", () => {
+	writeSpec("SPEC.md", "id: root-spec\ntype: goal-and-requirements\ntitle: Root");
+	// Non-existent translation returns null
+	const initial = getSpecTranslation("ws1", "SPEC.md");
+	expect(initial.translation).toBeNull();
+	expect(initial.cached).toBe(false);
+
+	// Save to user cache
+	const content =
+		"---\nid: root-spec\ntype: goal-and-requirements\ntitle: Root\n---\n\n## Body\n\nProse.\n";
+	const { createHash } = require("node:crypto");
+	const hash = createHash("sha256").update(content, "utf8").digest("hex");
+	saveUserSpecTranslation(hash, "## 正文\n\n中文译文。");
+
+	const cached = getSpecTranslation("ws1", "SPEC.md");
+	expect(cached.translation).toBe("## 正文\n\n中文译文。");
+	expect(cached.cached).toBe(true);
+
+	// Non-existent file returns null
+	expect(getSpecTranslation("ws1", "missing.md")).toEqual({ translation: null, cached: false });
 });

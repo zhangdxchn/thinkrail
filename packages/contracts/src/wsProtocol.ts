@@ -261,6 +261,7 @@ export const WS_METHODS = {
 	fsReadDir: "fs.readDir",
 	fsReadFile: "fs.readFile",
 	specGraph: "spec.graph",
+	specGetTranslation: "spec.getTranslation",
 	todoList: "todo.list",
 	todoAdd: "todo.add",
 	todoUpdate: "todo.update",
@@ -749,6 +750,10 @@ export interface WsMethodMap {
 		result: { content: string; meta: ResourceMeta };
 	};
 	"spec.graph": { params: { workspaceId: string }; result: SpecGraphSnapshot };
+	"spec.getTranslation": {
+		params: { workspaceId: string; path: string };
+		result: { translation: string | null; cached: boolean };
+	};
 	"todo.list": {
 		params: { workspaceId: string; sessionId: string; opened?: "page" | "rail" };
 		result: TodoPlan;

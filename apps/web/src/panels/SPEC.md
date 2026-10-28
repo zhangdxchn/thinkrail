@@ -2226,6 +2226,9 @@ own section. The kebab menu (`plan-menu`, a
   on phone-class viewports; `thinkrail/binary` shows identity and a host-backed
   download. The candidate list alone determines whether the resource toggle exists. No format predicate or
   preview/source field remains in the pane or tab.
+  For `.md`/`.mdx` documents, `FilePane` renders a language toggle ("Translate") in the toolbar; when
+  active, it queries `spec.getTranslation` for seeded or cached Chinese translation and passes the translated
+  prose to the renderer.
 
   `MarkdownPreview` retains the document typography, frontmatter stripping, alerts, Mermaid rendering,
   source-line stamps, review commenting, and bounded reading measure described above. These are renderer

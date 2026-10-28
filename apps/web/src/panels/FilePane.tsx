@@ -1,3 +1,4 @@
+import { RiTranslate2 } from "@remixicon/react";
 import { useT } from "@thinkrail/locales/react";
 import {
 	describeResource,
@@ -9,8 +10,9 @@ import {
 	UnplacedReviewStrip,
 	useRendererSelection,
 } from "@thinkrail/resource-renderers";
+import { Button } from "@thinkrail/ui/button";
 import { LoadingRegion } from "@thinkrail/ui/skeleton";
-import { Suspense, useMemo } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { isPhoneViewport } from "../lib";
 import type { FileTab } from "../store";
 import { useAppStore } from "../store";
@@ -57,7 +59,34 @@ export function FilePane({ tab }: { tab: FileTab }) {
 		resourceBytesUrl(tab.workspaceId, tab.path),
 	);
 	const reviews = [review.worktree];
-	const showToolbar = candidates.length >= 2 || fileHasDraft;
+	const isMarkdown = tab.path.endsWith(".md") || tab.path.endsWith(".mdx");
+	const [showTranslation, setShowTranslation] = useState(false);
+	const [translation, setTranslation] = useState<string | null>(null);
+
+	useEffect(() => {
+		if (!showTranslation || !isMarkdown) return;
+		let active = true;
+		void getTransport()
+			.request("spec.getTranslation", { workspaceId: tab.workspaceId, path: tab.path })
+			.then((res) => {
+				if (active && res.translation) {
+					setTranslation(res.translation);
+				}
+			})
+			.catch(() => {});
+		return () => {
+			active = false;
+		};
+	}, [showTranslation, isMarkdown, tab.workspaceId, tab.path, tab.content]);
+
+	const effectiveContent = useMemo(() => {
+		if (showTranslation && translation && content.kind === "text") {
+			return { ...content, text: translation };
+		}
+		return content;
+	}, [showTranslation, translation, content]);
+
+	const showToolbar = candidates.length >= 2 || fileHasDraft || isMarkdown;
 	const saveViewState = (state: unknown) => {
 		const current = useAppStore
 			.getState()
@@ -81,6 +110,21 @@ export function FilePane({ tab }: { tab: FileTab }) {
 					className="flex h-32 shrink-0 items-center justify-end gap-4 border-border-default border-b bg-container-header-bg px-12"
 				>
 					<SendReviewButton workspaceId={tab.workspaceId} path={tab.path} />
+					{isMarkdown ? (
+						<Button
+							size="s"
+							variant={showTranslation ? "soft-primary" : "ghost"}
+							iconLeft={RiTranslate2}
+							onClick={() => setShowTranslation((prev) => !prev)}
+							tooltip={
+								showTranslation
+									? t("panels.filePane.showOriginal")
+									: t("panels.filePane.showTranslation")
+							}
+						>
+							{t("panels.filePane.translate")}
+						</Button>
+					) : null}
 					<RendererToggles
 						candidates={candidates}
 						renderer={renderer}
@@ -103,7 +147,7 @@ export function FilePane({ tab }: { tab: FileTab }) {
 						renderer={renderer}
 						mobile={mobile}
 						resource={resource}
-						content={content}
+						content={effectiveContent}
 						review={review.worktree}
 						onPlacedThreadIds={onPlacedThreadIds}
 						viewState={tab.viewState}

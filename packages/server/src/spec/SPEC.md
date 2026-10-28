@@ -18,6 +18,9 @@ Serve the read-only Specs viewer: a whole-graph snapshot of the active worktree'
 push; this module's read path stays pull-only.) Also answers the project-level **`projectHasSpecs(root)`** — does a repo carry *any
 durable* spec (any node whose `type` is not the ephemeral `task-spec`) — which `host` exposes via the **lazy `project.hasSpecs`** method (a full-tree walk, so
 requested only for the one project the Welcome screen renders, never eagerly for every project).
+Also serves **`getSpecTranslation(workspaceId, filePath)`** (`spec.getTranslation`) for on-demand Chinese
+viewing: queries the lazy-loaded `specTranslationSeed.json` and user-level `spec-translations.json` cache
+by content SHA-256 and relative path.
 
 The read is **synchronous** (core's walk is sync-fs, O(worktree dirs) per call). That's acceptable —
 fetches are on-demand (workspace activation / a `workspace.fsChanged` nudge / an error-state Retry, no
@@ -38,8 +41,8 @@ core/SPEC.md), not an async wrapper — that would still block the loop in one p
   task-spec, e.g. under `.thinkrail/context/`, must never signal "set up"), through a per-root reused `SpecIndex`; the
   project-level signal behind the Welcome screen's "Set up project" suggestion. Degrades to `false` on a
   glob/parse failure so it can never break `project.open` / `project.list`.
-- **Public surface (barrel):** `specGraph`, `evictSpecIndex`, `projectHasSpecs`.
-- **Allowed deps:** `persistence` (workspace lookup); `contracts` (DTOs); **`pi-spec-graph/core`** (the
+- **Public surface (barrel):** `specGraph`, `evictSpecIndex`, `projectHasSpecs`, `getSpecTranslation`, `saveUserSpecTranslation`.
+- **Allowed deps:** `persistence` (workspace lookup, `dataDir`); `contracts` (DTOs); **`pi-spec-graph/core`** (the
   pi-free read model — the one host-side value-import of the extension package, sanctioned in
   `module-spec-graph`).
 - **Forbidden:** `host`; sibling features; `pi-spec-graph`'s extension entry or `tools/` (pi-coupled);

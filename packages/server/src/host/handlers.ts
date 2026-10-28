@@ -168,7 +168,7 @@ import {
 	updateComment,
 } from "../reviews";
 import { getConfig, noteRecentModel, updateConfig } from "../settings";
-import { evictSpecIndex, projectHasSpecs, specGraph } from "../spec";
+import { evictSpecIndex, getSpecTranslation, projectHasSpecs, specGraph } from "../spec";
 import {
 	deleteTemplate,
 	getTemplate,
@@ -734,6 +734,9 @@ const handlers: WsHandlers = {
 	"spec.graph": (p) => {
 		void ensureWatch(p.workspaceId);
 		return specGraph(p.workspaceId);
+	},
+	"spec.getTranslation": (p) => {
+		return getSpecTranslation(p.workspaceId, p.path);
 	},
 	"todo.list": (p) => {
 		if (p.opened)
