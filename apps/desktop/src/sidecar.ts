@@ -27,12 +27,37 @@ export interface SidecarInstance {
 	stop(): Promise<void>;
 }
 
+function resolveServerRunner(dir: string): string {
+	const direct = join(dir, "serverRunner.ts");
+	if (existsSync(direct)) return direct;
+	const fromDist = join(dir, "../src/serverRunner.ts");
+	if (existsSync(fromDist)) return fromDist;
+	return direct;
+}
+
+function resolveStaticDir(options: SidecarOptions, cwd: string): string | undefined {
+	if (options.staticDir && existsSync(options.staticDir)) {
+		return options.staticDir;
+	}
+	if (process.env.THINKRAIL_STATIC_DIR && existsSync(process.env.THINKRAIL_STATIC_DIR)) {
+		return process.env.THINKRAIL_STATIC_DIR;
+	}
+	if (options.isPackaged && process.resourcesPath) {
+		const packagedWeb = join(process.resourcesPath, "web");
+		if (existsSync(packagedWeb)) return packagedWeb;
+	} else {
+		const devWeb = resolve(cwd, "../web/dist");
+		if (existsSync(devWeb)) return devWeb;
+	}
+	return undefined;
+}
+
 export async function startBunSidecar(options: SidecarOptions): Promise<SidecarInstance> {
 	const cmd = "bun";
 	let args: string[] = [];
 	let cwd = resolve(currentDir, "..");
 
-	if (options.isPackaged) {
+	if (options.isPackaged && process.resourcesPath) {
 		// In packaged mode, use bundled bun or compiled binary in resources
 		const resourcesPath = join(process.resourcesPath, "server");
 		const bundledRunner = join(resourcesPath, "serverRunner.js");
@@ -41,17 +66,19 @@ export async function startBunSidecar(options: SidecarOptions): Promise<SidecarI
 			cwd = resourcesPath;
 		} else {
 			// Fallback to local script if available
-			args = [join(currentDir, "serverRunner.ts")];
+			args = [resolveServerRunner(currentDir)];
 		}
 	} else {
 		// In dev mode, run the TypeScript server runner via bun
-		args = [join(currentDir, "serverRunner.ts")];
+		args = [resolveServerRunner(currentDir)];
 	}
+
+	const resolvedStaticDir = resolveStaticDir(options, cwd);
 
 	const env = {
 		...process.env,
 		THINKRAIL_HOST: "127.0.0.1",
-		...(options.staticDir ? { THINKRAIL_STATIC_DIR: options.staticDir } : {}),
+		...(resolvedStaticDir ? { THINKRAIL_STATIC_DIR: resolvedStaticDir } : {}),
 	};
 
 	return new Promise((resolvePromise, rejectPromise) => {

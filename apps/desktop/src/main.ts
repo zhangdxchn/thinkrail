@@ -248,6 +248,12 @@ async function createWindow() {
 		return { action: "deny" };
 	});
 
+	win.webContents.on("did-fail-load", (_event, errorCode, errorDescription, validatedURL) => {
+		console.error(
+			`[desktop] Failed to load URL ${validatedURL}: ${errorDescription} (${errorCode})`,
+		);
+	});
+
 	// Start Bun Sidecar
 	try {
 		console.log("[desktop] Starting ThinkRail Bun server sidecar...");
@@ -261,8 +267,16 @@ async function createWindow() {
 		const targetUrl = `${sidecar.origin}${initialRoute || ""}`;
 
 		await win.loadURL(targetUrl);
+		console.log(`[desktop] Window loaded successfully: ${targetUrl}`);
 		win.show();
 		setupApplicationMenu(win);
+
+		if (process.env.THINKRAIL_SMOKE_TEST === "1") {
+			console.log("[desktop] Smoke test completed successfully, exiting.");
+			setTimeout(() => {
+				app.quit();
+			}, 500);
+		}
 	} catch (err) {
 		console.error("[desktop] Failed to start sidecar or load window:", err);
 		app.quit();
