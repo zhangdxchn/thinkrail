@@ -28,6 +28,7 @@
 			"@types/react-dom": "19.3.0",
 			"astro": "7.3.3",
 			"diff": "9.0.0",
+			"electron": "35.7.5",
 			"lucide-react": "1.61.0",
 			"mermaid": "12.2.0",
 			"react": "19.3.1",
@@ -43,6 +44,7 @@
 		}
 	},
 	"overrides": {
+		"@types/node": "22.20.5",
 		"dompurify": "3.4.17",
 		"react": "catalog:",
 		"react-dom": "catalog:"
@@ -57,7 +59,7 @@
 		"posthog-cli": "bun apps/web/posthogCli.ts",
 		"build:binary": "bun run build:web && bun apps/cli/scripts/build-binary.ts",
 		"smoke:binary": "bun packages/artifact-tests/smoke-binary.ts",
-		"desktop:build": "bun run --cwd apps/desktop package:dev",
+		"desktop:build": "bun run --cwd apps/desktop build",
 		"desktop:dev": "bun run --cwd apps/desktop dev",
 		"desktop:package:canary": "bun run --cwd apps/desktop package:canary",
 		"desktop:package:stable": "bun run --cwd apps/desktop package:stable",
@@ -125,6 +127,7 @@
 	},
 	"trustedDependencies": [
 		"@biomejs/biome",
+		"electron",
 		"esbuild"
 	],
 	"patchedDependencies": {

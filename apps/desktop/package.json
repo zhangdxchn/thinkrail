@@ -3,12 +3,13 @@
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
+	"main": "dist/main.js",
 	"scripts": {
-		"package:dev": "electrobun build --env=dev",
-		"dev": "electrobun dev",
-		"package:canary": "electrobun build --env=canary",
-		"package:stable": "electrobun build --env=stable",
-		"typecheck": "electrobun prepare && tsc --noEmit",
+		"build:main": "bun build src/main.ts --outfile dist/main.js --target node --external electron",
+		"build:preload": "bun build src/preload.ts --outfile dist/preload.cjs --target node --external electron",
+		"build": "bun run build:main && bun run build:preload",
+		"dev": "bun run build && electron .",
+		"typecheck": "tsc --noEmit",
 		"test": "bun test"
 	},
 	"dependencies": {
@@ -19,8 +20,7 @@
 	},
 	"devDependencies": {
 		"@types/bun": "catalog:",
-		"electrobun": "2.0.5",
-		"resedit": "catalog:",
+		"electron": "catalog:",
 		"typescript": "catalog:"
 	}
 }
